@@ -1,6 +1,7 @@
 let React;
 let ReactNoop;
 let Scheduler;
+let act;
 let Profiler;
 let Suspense;
 let SuspenseList;
@@ -12,9 +13,10 @@ describe('ReactSuspenseList', () => {
     React = require('react');
     ReactNoop = require('react-noop-renderer');
     Scheduler = require('scheduler');
+    act = require('jest-react').act;
     Profiler = React.Profiler;
     Suspense = React.Suspense;
-    SuspenseList = React.unstable_SuspenseList;
+    SuspenseList = React.SuspenseList;
   });
 
   function Text(props) {
@@ -40,7 +42,6 @@ describe('ReactSuspenseList', () => {
     return Component;
   }
 
-  // @gate experimental
   it('warns if an unsupported revealOrder option is used', () => {
     function Foo() {
       return (
@@ -60,7 +61,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('warns if a upper case revealOrder option is used', () => {
     function Foo() {
       return (
@@ -80,7 +80,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('warns if a misspelled revealOrder option is used', () => {
     function Foo() {
       return (
@@ -101,7 +100,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('warns if a single element is passed to a "forwards" list', () => {
     function Foo({children}) {
       return <SuspenseList revealOrder="forwards">{children}</SuspenseList>;
@@ -134,7 +132,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('warns if a single fragment is passed to a "backwards" list', () => {
     function Foo() {
       return (
@@ -155,7 +152,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('warns if a nested array is passed to a "forwards" list', () => {
     function Foo({items}) {
       return (
@@ -183,7 +179,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('shows content independently by default', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -250,7 +245,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('shows content independently in legacy mode regardless of option', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -292,9 +286,11 @@ describe('ReactSuspenseList', () => {
       </>,
     );
 
-    await C.resolve();
+    await act(async () => {
+      C.resolve();
+    });
 
-    expect(Scheduler).toFlushAndYield(['C']);
+    expect(Scheduler).toHaveYielded(['C']);
 
     expect(ReactNoop).toMatchRenderedOutput(
       <>
@@ -304,9 +300,11 @@ describe('ReactSuspenseList', () => {
       </>,
     );
 
-    await B.resolve();
+    await act(async () => {
+      B.resolve();
+    });
 
-    expect(Scheduler).toFlushAndYield(['B']);
+    expect(Scheduler).toHaveYielded(['B']);
 
     expect(ReactNoop).toMatchRenderedOutput(
       <>
@@ -317,7 +315,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays all "together"', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -387,7 +384,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays all "together" even when nested as siblings', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -473,7 +469,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays all "together" in nested SuspenseLists', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -535,7 +530,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays all "together" in nested SuspenseLists where the inner is default', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -595,7 +589,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays all "together" during an update', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -680,7 +673,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('avoided boundaries can be coordinate with SuspenseList', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -779,7 +771,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays each items in "forwards" order', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -845,7 +836,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays each items in "backwards" order', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -911,7 +901,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays added row at the top "together" and the bottom in "forwards" order', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -1066,7 +1055,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('displays added row at the top "together" and the bottom in "backwards" order', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -1251,7 +1239,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('switches to rendering fallbacks if the tail takes long CPU time', async () => {
     function Foo() {
       return (
@@ -1270,7 +1257,13 @@ describe('ReactSuspenseList', () => {
     }
 
     // This render is only CPU bound. Nothing suspends.
-    ReactNoop.render(<Foo />);
+    if (gate(flags => flags.enableSyncDefaultUpdates)) {
+      React.startTransition(() => {
+        ReactNoop.render(<Foo />);
+      });
+    } else {
+      ReactNoop.render(<Foo />);
+    }
 
     expect(Scheduler).toFlushAndYieldThrough(['A']);
 
@@ -1314,7 +1307,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('only shows one loading state at a time for "collapsed" tail insertions', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -1384,7 +1376,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('warns if an unsupported tail option is used', () => {
     function Foo() {
       return (
@@ -1405,7 +1396,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('warns if a tail option is used with "together"', () => {
     function Foo() {
       return (
@@ -1426,7 +1416,6 @@ describe('ReactSuspenseList', () => {
     ]);
   });
 
-  // @gate experimental
   it('renders one "collapsed" fallback even if CPU time elapsed', async () => {
     function Foo() {
       return (
@@ -1448,7 +1437,13 @@ describe('ReactSuspenseList', () => {
     }
 
     // This render is only CPU bound. Nothing suspends.
-    ReactNoop.render(<Foo />);
+    if (gate(flags => flags.enableSyncDefaultUpdates)) {
+      React.startTransition(() => {
+        ReactNoop.render(<Foo />);
+      });
+    } else {
+      ReactNoop.render(<Foo />);
+    }
 
     expect(Scheduler).toFlushAndYieldThrough(['A']);
 
@@ -1493,7 +1488,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('adding to the middle does not collapse insertions (forwards)', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -1636,7 +1630,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('adding to the middle does not collapse insertions (backwards)', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -1784,7 +1777,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('adding to the middle of committed tail does not collapse insertions', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -1942,7 +1934,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('only shows no initial loading state "hidden" tail insertions', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -2006,7 +1997,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('eventually resolves a nested forwards suspense list', async () => {
     const B = createAsyncText('B');
 
@@ -2069,7 +2059,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('eventually resolves a nested forwards suspense list with a hidden tail', async () => {
     const B = createAsyncText('B');
 
@@ -2116,7 +2105,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('eventually resolves two nested forwards suspense lists with a hidden tail', async () => {
     const B = createAsyncText('B');
 
@@ -2184,7 +2172,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('can do unrelated adjacent updates', async () => {
     let updateAdjacent;
     function Adjacent() {
@@ -2218,7 +2205,7 @@ describe('ReactSuspenseList', () => {
     );
 
     // Update the row adjacent to the list
-    ReactNoop.act(() => updateAdjacent('C'));
+    act(() => updateAdjacent('C'));
 
     expect(Scheduler).toHaveYielded(['C']);
 
@@ -2231,7 +2218,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('is able to re-suspend the last rows during an update with hidden', async () => {
     const AsyncB = createAsyncText('B');
 
@@ -2275,7 +2261,7 @@ describe('ReactSuspenseList', () => {
     const previousInst = setAsyncB;
 
     // During an update we suspend on B.
-    ReactNoop.act(() => setAsyncB(true));
+    act(() => setAsyncB(true));
 
     expect(Scheduler).toHaveYielded([
       'Suspend! [B]',
@@ -2293,7 +2279,7 @@ describe('ReactSuspenseList', () => {
 
     // Before we resolve we'll rerender the whole list.
     // This should leave the tree intact.
-    ReactNoop.act(() => ReactNoop.render(<Foo updateList={true} />));
+    act(() => ReactNoop.render(<Foo updateList={true} />));
 
     expect(Scheduler).toHaveYielded(['A', 'Suspend! [B]', 'Loading B']);
 
@@ -2320,7 +2306,6 @@ describe('ReactSuspenseList', () => {
     expect(previousInst).toBe(setAsyncB);
   });
 
-  // @gate experimental
   it('is able to re-suspend the last rows during an update with hidden', async () => {
     const AsyncB = createAsyncText('B');
 
@@ -2364,7 +2349,7 @@ describe('ReactSuspenseList', () => {
     const previousInst = setAsyncB;
 
     // During an update we suspend on B.
-    ReactNoop.act(() => setAsyncB(true));
+    act(() => setAsyncB(true));
 
     expect(Scheduler).toHaveYielded([
       'Suspend! [B]',
@@ -2382,7 +2367,7 @@ describe('ReactSuspenseList', () => {
 
     // Before we resolve we'll rerender the whole list.
     // This should leave the tree intact.
-    ReactNoop.act(() => ReactNoop.render(<Foo updateList={true} />));
+    act(() => ReactNoop.render(<Foo updateList={true} />));
 
     expect(Scheduler).toHaveYielded(['A', 'Suspend! [B]', 'Loading B']);
 
@@ -2409,7 +2394,6 @@ describe('ReactSuspenseList', () => {
     expect(previousInst).toBe(setAsyncB);
   });
 
-  // @gate experimental
   it('is able to interrupt a partially rendered tree and continue later', async () => {
     const AsyncA = createAsyncText('A');
 
@@ -2443,9 +2427,15 @@ describe('ReactSuspenseList', () => {
 
     expect(ReactNoop).toMatchRenderedOutput(null);
 
-    await ReactNoop.act(async () => {
+    await act(async () => {
       // Add a few items at the end.
-      updateLowPri(true);
+      if (gate(flags => flags.enableSyncDefaultUpdates)) {
+        React.startTransition(() => {
+          updateLowPri(true);
+        });
+      } else {
+        updateLowPri(true);
+      }
 
       // Flush partially through.
       expect(Scheduler).toFlushAndYieldThrough(['B', 'C']);
@@ -2482,7 +2472,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('can resume class components when revealed together', async () => {
     const A = createAsyncText('A');
     const B = createAsyncText('B');
@@ -2545,7 +2534,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('should be able to progressively show CPU expensive rows with two pass rendering', async () => {
     function TwoPass({text}) {
       const [pass, setPass] = React.useState(0);
@@ -2582,7 +2570,13 @@ describe('ReactSuspenseList', () => {
       );
     }
 
-    ReactNoop.render(<App />);
+    if (gate(flags => flags.enableSyncDefaultUpdates)) {
+      React.startTransition(() => {
+        ReactNoop.render(<App />);
+      });
+    } else {
+      ReactNoop.render(<App />);
+    }
 
     expect(Scheduler).toFlushAndYieldThrough([
       'App',
@@ -2610,7 +2604,6 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental
   it('should be able to progressively show rows with two pass rendering and visible', async () => {
     function TwoPass({text}) {
       const [pass, setPass] = React.useState(0);
@@ -2649,7 +2642,13 @@ describe('ReactSuspenseList', () => {
       );
     }
 
-    ReactNoop.render(<App />);
+    if (gate(flags => flags.enableSyncDefaultUpdates)) {
+      React.startTransition(() => {
+        ReactNoop.render(<App />);
+      });
+    } else {
+      ReactNoop.render(<App />);
+    }
 
     expect(Scheduler).toFlushAndYieldThrough([
       'App',
@@ -2686,7 +2685,7 @@ describe('ReactSuspenseList', () => {
     );
   });
 
-  // @gate experimental && enableProfilerTimer
+  // @gate enableProfilerTimer
   it('counts the actual duration when profiling a SuspenseList', async () => {
     // Order of parameters: id, phase, actualDuration, treeBaseDuration
     const onRender = jest.fn();
